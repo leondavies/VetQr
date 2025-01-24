@@ -18,7 +18,7 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
             <Link href="/" className="text-xl font-bold text-gray-800">
-              Pet Medical ID System
+              VetQr
             </Link>
           </div>
           <div className="hidden md:block">

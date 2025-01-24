@@ -1,12 +1,12 @@
 import "./globals.css"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
-import Navbar from "@/components/Navbar"
+import Navbar from "@/components/NavBar"
 
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Pet Medical ID System",
+  title: "VetQr",
   description: "A system for managing pet medical records and vet visits",
 }
 
