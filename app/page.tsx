@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import type { Pet } from "../types/pet"
 import PetProfile from "../components/PetProfile"
-import UpdatePetForm from "../components/UpdatePetForm"
+// import UpdatePetForm from "../components/UpdatePetForm"
 import AddPetForm from "../components/AddPetForm"
 import { supabase } from "../utils/supabase"
 import { Search, Plus } from "lucide-react"
@@ -158,12 +158,12 @@ export default function Home() {
             Back to Home
           </button>
           <PetProfile pet={selectedPet} />
-          <button
+          {/* <button
             onClick={() => setIsUpdating(true)}
             className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full mt-4 block mx-auto transition duration-300 ease-in-out"
           >
             Update Pet Information
-          </button>
+          </button> */}
         </div>
       )}
       {isUpdating && selectedPet && (
@@ -174,7 +174,7 @@ export default function Home() {
           >
             Back to Home
           </button>
-          <UpdatePetForm pet={selectedPet} onUpdate={handleUpdate} onCancel={() => setIsUpdating(false)} />
+          {/* <UpdatePetForm pet={selectedPet} onUpdate={handleUpdate} onCancel={() => setIsUpdating(false)} /> */}
         </div>
       )}
       {isAdding && (

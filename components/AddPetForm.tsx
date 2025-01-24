@@ -10,7 +10,7 @@ interface AddPetFormProps {
 }
 
 export default function AddPetForm({ onAdd, onCancel }: AddPetFormProps) {
-  const [newPet, setNewPet] = useState<Partial<Pet> & { owner: Partial<Owner>; qrcode: Partial<QRCode> }>({
+  const [newPet, setNewPet] = useState<Partial<Pet> & { owner: Partial<Owner> }>({
     name: "",
     species: "Dog",
     breed: "",
@@ -22,12 +22,11 @@ export default function AddPetForm({ onAdd, onCancel }: AddPetFormProps) {
       email: "",
       address: "",
     },
-    qrcode: {
-      codevalue: "",
-    },
     vetid: "",
   })
   const [vets, setVets] = useState<Veterinarian[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     fetchVets()
@@ -36,18 +35,36 @@ export default function AddPetForm({ onAdd, onCancel }: AddPetFormProps) {
   const fetchVets = async () => {
     try {
       const { data, error } = await supabase.from("veterinarian").select("*").order("name")
-
       if (error) throw error
-
       setVets(data)
     } catch (error) {
       console.error("Error fetching veterinarians:", error)
+      setError("Failed to fetch veterinarians. Please try again.")
+    }
+  }
+
+  const generateUniqueShortId = async (): Promise<string> => {
+    while (true) {
+      const shortId = Math.floor(100000 + Math.random() * 900000).toString()
+      const { data, error } = await supabase.from("pet").select("shortid").eq("shortid", shortId).single()
+
+      if (error && error.code === "PGRST116") {
+        // No matching shortid found, so this one is unique
+        return shortId
+      } else if (error) {
+        throw error
+      }
+      // If we got here, the shortId already exists, so we'll generate a new one
     }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setIsLoading(true)
+    setError(null)
     try {
+      const shortId = await generateUniqueShortId()
+
       // Insert owner
       const { data: ownerData, error: ownerError } = await supabase
         .from("owner")
@@ -58,12 +75,12 @@ export default function AddPetForm({ onAdd, onCancel }: AddPetFormProps) {
       if (ownerError) throw ownerError
 
       // Generate QR code URL
-      const qrCodeUrl = `${window.location.origin}/pet/${newPet.qrcode.codevalue}`
+      const qrCodeUrl = `${window.location.origin}/pet/${shortId}`
 
       // Insert QR code
       const { data: qrCodeData, error: qrCodeError } = await supabase
         .from("qrcode")
-        .insert([{ ...newPet.qrcode, codevalue: qrCodeUrl }])
+        .insert([{ codevalue: qrCodeUrl }])
         .select()
         .single()
 
@@ -82,7 +99,7 @@ export default function AddPetForm({ onAdd, onCancel }: AddPetFormProps) {
             ownerid: ownerData.ownerid,
             qrcodeid: qrCodeData.qrcodeid,
             vetid: newPet.vetid,
-            shortid: newPet.qrcode.codevalue,
+            shortid: shortId,
           },
         ])
         .select(`
@@ -98,7 +115,9 @@ export default function AddPetForm({ onAdd, onCancel }: AddPetFormProps) {
       onAdd(petData as Pet)
     } catch (error) {
       console.error("Error adding new pet:", error)
-      alert("Failed to add new pet. Please try again.")
+      setError("Failed to add new pet. Please try again.")
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -274,35 +293,28 @@ export default function AddPetForm({ onAdd, onCancel }: AddPetFormProps) {
         </div>
       </div>
 
-      <h3 className="text-xl font-semibold mt-4 mb-2">QR Code</h3>
-      <div className="mb-4">
-        <label htmlFor="qrCodeValue" className="block mb-2">
-          QR Code Value (6-digit ID)
-        </label>
-        <input
-          type="text"
-          id="qrCodeValue"
-          name="codevalue"
-          value={newPet.qrcode.codevalue}
-          onChange={(e) => handleChange(e, "qrcode")}
-          className="w-full p-2 border rounded"
-          required
-          pattern="[0-9]{6}"
-          title="Please enter a 6-digit number"
-          maxLength={6}
-        />
-      </div>
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+          <strong className="font-bold">Error:</strong>
+          <span className="block sm:inline"> {error}</span>
+        </div>
+      )}
 
       <div className="flex justify-end gap-4">
         <button
           type="button"
           onClick={onCancel}
           className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
+          disabled={isLoading}
         >
           Cancel
         </button>
-        <button type="submit" className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
-          Add Pet
+        <button
+          type="submit"
+          className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+          disabled={isLoading}
+        >
+          {isLoading ? "Adding Pet..." : "Add Pet"}
         </button>
       </div>
     </form>
