@@ -1,41 +1,21 @@
 import { NextResponse } from "next/server"
-import { supabase } from "../../../../utils/supabase"
-import type { Pet } from "../../../../types/pet"
+import { createClient } from "@supabase/supabase-js"
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
-  const id = params.id
-  const { data, error } = await supabase
-    .from("Pet")
-    .select(`
-      *,
-      Owner (*),
-      QRCode (*),
-      VetVisit (
-        *,
-        Veterinarian (*),
-        MedicalHistory (*)
-      )
-    `)
-    .eq("PetID", id)
-    .single()
-
-  if (error) {
-    return new NextResponse(error.message, { status: 404 })
-  }
-
-  return NextResponse.json(data)
-}
+const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
 export async function PUT(request: Request, { params }: { params: { id: string } }) {
-  const id = params.id
-  const updatedPet: Partial<Pet> = await request.json()
+  try {
+    const { id } = params
+    const body = await request.json()
 
-  const { data, error } = await supabase.from("Pet").update(updatedPet).eq("PetID", id).select().single()
+    const { data, error } = await supabase.from("pets").update(body).eq("id", id).select()
 
-  if (error) {
-    return new NextResponse(error.message, { status: 400 })
+    if (error) throw error
+
+    return NextResponse.json(data[0])
+  } catch (error) {
+    console.error("Error updating pet:", error)
+    return NextResponse.json({ error: "Failed to update pet" }, { status: 500 })
   }
-
-  return NextResponse.json(data)
 }
 
