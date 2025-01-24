@@ -17,8 +17,8 @@ export default function PetProfile({ pet }: PetProfileProps) {
   }
 
   return (
-    <div className="bg-white shadow-lg rounded-lg overflow-hidden">
-      <div className="px-6 py-4">
+    <div className="bg-white rounded-lg overflow-hidden">
+      <div className="py-4">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-2xl font-bold">{displayValue(pet.name, "Unnamed Pet")}</h2>
@@ -50,11 +50,11 @@ export default function PetProfile({ pet }: PetProfileProps) {
             <p>{displayValue(pet.owner?.contactnumber, "Contact information not provided")}</p>
           </div>
         </div>
-        <div className="mt-4 border border-gray-200 rounded-lg p-4">
+        <div className="pt-4 border-t">
           <h3 className="font-semibold mb-2">Medical History</h3>
           {pet.vetvisit && pet.vetvisit.length > 0 ? (
             pet.vetvisit.map((visit: VetVisit, index: number) => (
-              <div key={index} className="border-t border-gray-200 py-2 first:border-t-0">
+              <div key={index} className=" py-2 first:border-t-0">
                 <p className="font-semibold">
                   {displayValue(
                     visit.visitdate ? new Date(visit.visitdate).toLocaleDateString() : null,

@@ -137,11 +137,11 @@ export default function AddPetForm({ onAdd, onCancel }: AddPetFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white shadow-lg rounded-lg p-6">
+    <form onSubmit={handleSubmit} className="bg-white rounded-lg">
       <h2 className="text-2xl font-bold mb-4">Add New Pet</h2>
 
       <h3 className="text-xl font-semibold mt-4 mb-2">Pet Information</h3>
-      <div className="grid grid-cols-2 gap-4 mb-4">
+      <div className="grid md:grid-cols-2 gap-4 mb-4">
         <div>
           <label htmlFor="name" className="block mb-2">
             Name
@@ -237,7 +237,7 @@ export default function AddPetForm({ onAdd, onCancel }: AddPetFormProps) {
       </div>
 
       <h3 className="text-xl font-semibold mt-4 mb-2">Owner Information</h3>
-      <div className="grid grid-cols-2 gap-4 mb-4">
+      <div className="grid md:grid-cols-2 gap-4 mb-4">
         <div>
           <label htmlFor="ownerName" className="block mb-2">
             Name

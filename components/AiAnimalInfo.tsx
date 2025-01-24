@@ -84,9 +84,9 @@ export default function AIAnimalInfo({ species, breed }: AIAnimalInfoProps) {
   }
 
   return (
-    <div className="mt-4">
+    <div className="py-4 border-t">
       <h3 className="text-sm font-semibold mb-2">
-        About {breed} {species}
+        About {breed}'s
       </h3>
       <p className="whitespace-pre-wrap">{info}</p>
     </div>
