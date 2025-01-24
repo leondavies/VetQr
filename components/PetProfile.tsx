@@ -1,6 +1,6 @@
 import type { Pet, VetVisit } from "../types/pet"
 import { QRCodeSVG } from "qrcode.react"
-import AIAnimalInfo from "./AIAnimalInfo"
+import AIAnimalInfo from "./AiAnimalInfo"
 
 interface PetProfileProps {
   pet: Pet
