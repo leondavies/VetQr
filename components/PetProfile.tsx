@@ -1,6 +1,8 @@
 import type { Pet, VetVisit } from "../types/pet"
 import { QRCodeSVG } from "qrcode.react"
 import AIAnimalInfo from "./AiAnimalInfo"
+import Image from "next/image"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 
 interface PetProfileProps {
   pet: Pet
@@ -19,6 +21,17 @@ export default function PetProfile({ pet }: PetProfileProps) {
   return (
     <div className="bg-white rounded-lg overflow-hidden">
       <div className="py-4">
+        {pet.imageUrl && (
+          <div className="mb-6 flex justify-center items-center">
+            <Image
+              src={pet.imageUrl || "/placeholder.svg"}
+              alt={`${pet.name}'s photo`}
+              width={300}
+              height={300}
+              className="rounded-full object-cover max-w-[300px] aspect-square"
+            />
+          </div>
+        )}
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-2xl font-bold">{displayValue(pet.name, "Unnamed Pet")}</h2>
@@ -26,10 +39,6 @@ export default function PetProfile({ pet }: PetProfileProps) {
               {displayValue(pet.species, "Species unknown")} - {displayValue(pet.breed, "Breed unknown")} (ID:{" "}
               {displayValue(pet.shortid, "No ID")})
             </p>
-          </div>
-          <div className="hidden md:block text-center">
-            <QRCodeSVG value={qrCodeUrl} size={100} />
-            <p className="text-sm text-gray-500 mt-2">Scan for pet profile</p>
           </div>
         </div>
         <div className="grid grid-cols-2 gap-4 mb-4">
@@ -53,27 +62,31 @@ export default function PetProfile({ pet }: PetProfileProps) {
         <div className="pt-4 border-t">
           <h3 className="font-semibold mb-2">Medical History</h3>
           {pet.vetvisit && pet.vetvisit.length > 0 ? (
-            pet.vetvisit.map((visit: VetVisit, index: number) => (
-              <div key={index} className=" py-2 first:border-t-0">
-                <p className="font-semibold">
-                  {displayValue(
-                    visit.visitdate ? new Date(visit.visitdate).toLocaleDateString() : null,
-                    "Date not recorded",
-                  )}{" "}
-                  - Dr. {displayValue(visit.veterinarian?.name, "Veterinarian not specified")}
-                </p>
-                <p>Diagnosis: {displayValue(visit.medicalhistory?.diagnosis, "No diagnosis recorded")}</p>
-                <p>Treatment: {displayValue(visit.medicalhistory?.treatment, "No treatment specified")}</p>
-                <p>Medications: {displayValue(visit.medicalhistory?.medications, "No medications listed")}</p>
-                <p>Notes: {displayValue(visit.medicalhistory?.notes, "No additional notes")}</p>
-              </div>
-            ))
+            <Accordion type="single" collapsible className="w-full">
+              {pet.vetvisit.map((visit: VetVisit, index: number) => (
+                <AccordionItem key={index} value={`item-${index}`}>
+                  <AccordionTrigger>
+                    {displayValue(
+                      visit.visitdate ? new Date(visit.visitdate).toLocaleDateString() : null,
+                      "Date not recorded",
+                    )}{" "}
+                    - Dr. {displayValue(visit.veterinarian?.name, "Veterinarian not specified")}
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <p>Diagnosis: {displayValue(visit.medicalhistory?.diagnosis, "No diagnosis recorded")}</p>
+                    <p>Treatment: {displayValue(visit.medicalhistory?.treatment, "No treatment specified")}</p>
+                    <p>Medications: {displayValue(visit.medicalhistory?.medications, "No medications listed")}</p>
+                    <p>Notes: {displayValue(visit.medicalhistory?.notes, "No additional notes")}</p>
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
           ) : (
             <p>No medical history available</p>
           )}
         </div>
         <AIAnimalInfo species={pet.species} breed={pet.breed || ""} />
-        <div className="md:hidden text-center flex flex-col justify-center items-center border-t border-gray-200 pt-4">
+        <div className="text-center flex flex-col justify-center items-center border-t border-gray-200 pt-4">
           <QRCodeSVG value={qrCodeUrl} size={100} />
           <p className="text-sm text-gray-500 mt-2">Scan for pet profile</p>
         </div>
@@ -81,4 +94,3 @@ export default function PetProfile({ pet }: PetProfileProps) {
     </div>
   )
 }
-

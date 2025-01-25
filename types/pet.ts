@@ -9,6 +9,7 @@ export interface Pet {
   ownerid: string
   qrcodeid: string
   vetid: string
+  imageUrl?: string
   owner?: Owner
   qrcode?: QRCode
   veterinarian?: Veterinarian

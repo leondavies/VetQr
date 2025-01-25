@@ -23,10 +23,12 @@ export default function AddPetForm({ onAdd, onCancel }: AddPetFormProps) {
       address: "",
     },
     vetid: "",
+    imageUrl: "",
   })
   const [vets, setVets] = useState<Veterinarian[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [image, setImage] = useState<File | null>(null)
 
   useEffect(() => {
     fetchVets()
@@ -46,15 +48,16 @@ export default function AddPetForm({ onAdd, onCancel }: AddPetFormProps) {
   const generateUniqueShortId = async (): Promise<string> => {
     while (true) {
       const shortId = Math.floor(100000 + Math.random() * 900000).toString()
-      const { data, error } = await supabase.from("pet").select("shortid").eq("shortid", shortId).single()
+      const { data, error } = await supabase.from("pet").select("shortid").eq("shortid", shortId)
 
-      if (error && error.code === "PGRST116") {
-        // No matching shortid found, so this one is unique
-        return shortId
-      } else if (error) {
+      if (error) {
+        console.error("Error checking shortid:", error)
         throw error
       }
-      // If we got here, the shortId already exists, so we'll generate a new one
+
+      if (data.length === 0) {
+        return shortId
+      }
     }
   }
 
@@ -86,6 +89,22 @@ export default function AddPetForm({ onAdd, onCancel }: AddPetFormProps) {
 
       if (qrCodeError) throw qrCodeError
 
+      let imageUrl = null
+      if (image) {
+        const formData = new FormData()
+        formData.append("image", image)
+        const response = await fetch("/api/upload-image", {
+          method: "POST",
+          body: formData,
+        })
+        if (!response.ok) {
+          const errorData = await response.json()
+          throw new Error(errorData.error || "Failed to upload image")
+        }
+        const data = await response.json()
+        imageUrl = data.url
+      }
+
       // Insert pet
       const { data: petData, error: petError } = await supabase
         .from("pet")
@@ -100,6 +119,7 @@ export default function AddPetForm({ onAdd, onCancel }: AddPetFormProps) {
             qrcodeid: qrCodeData.qrcodeid,
             vetid: newPet.vetid,
             shortid: shortId,
+            imageUrl: imageUrl,
           },
         ])
         .select(`
@@ -115,7 +135,7 @@ export default function AddPetForm({ onAdd, onCancel }: AddPetFormProps) {
       onAdd(petData as Pet)
     } catch (error) {
       console.error("Error adding new pet:", error)
-      setError("Failed to add new pet. Please try again.")
+      setError(error instanceof Error ? error.message : "Failed to add new pet. Please try again.")
     } finally {
       setIsLoading(false)
     }
@@ -136,9 +156,15 @@ export default function AddPetForm({ onAdd, onCancel }: AddPetFormProps) {
     }
   }
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setImage(e.target.files[0])
+    }
+  }
+
   return (
     <form onSubmit={handleSubmit} className="bg-white rounded-lg">
-      <h2 className="text-2xl font-bold mb-4">Add New Pet</h2>
+            <h2 className="text-2xl font-bold mb-4">Add New Pet</h2>
 
       <h3 className="text-xl font-semibold mt-4 mb-2">Pet Information</h3>
       <div className="grid md:grid-cols-2 gap-4 mb-4">
@@ -233,6 +259,19 @@ export default function AddPetForm({ onAdd, onCancel }: AddPetFormProps) {
               </option>
             ))}
           </select>
+        </div>
+        <div>
+          <label htmlFor="image" className="block mb-2">
+            Pet Image
+          </label>
+          <input
+            type="file"
+            id="image"
+            name="image"
+            onChange={handleImageChange}
+            accept="image/*"
+            className="w-full p-2 border rounded"
+          />
         </div>
       </div>
 
